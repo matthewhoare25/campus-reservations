@@ -16,6 +16,8 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 from google.appengine.ext.db import Key
 import json
+from array import *
+
 class StoredData(db.Model):
   tag = db.StringProperty()
   value = db.StringProperty(multiline=True)
@@ -130,7 +132,7 @@ class GetValue(webapp.RequestHandler):
 
   def get_value(self, tag):
 	if tag == "getList":
-		listTags = ['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite']
+		listTags = array(tag,['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite'])
 		valuesAll = ""
 		for tag in listTags:
 			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
