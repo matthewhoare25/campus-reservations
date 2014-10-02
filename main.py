@@ -15,8 +15,7 @@ from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 from google.appengine.ext.db import Key
-from django.utils import simplejson as json
-
+import json
 class StoredData(db.Model):
   tag = db.StringProperty()
   value = db.StringProperty(multiline=True)
@@ -97,20 +96,70 @@ class StoreAValue(webapp.RequestHandler):
        <input type="submit" value="Store a value">
     </form></body></html>\n''')
 
+
+  def store_a_value(self, tag, value):
+    # There's a potential readers/writers error here :(
+    entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
+    if entry:
+      entry.value = value
+    else: entry = StoredData(tag = tag, value = value)
+    entry.put()
+    ## Send back a confirmation message.  The TinyWebDB component ignores
+    ## the message (other than to note that it was received), but other
+    ## components might use this.
+    result = ["STORED", tag, value]
+    WritePhoneOrWeb(self, lambda : json.dump(result, self.response.out))
+
+  def post(self):
+    tag = self.request.get('tag')
+    value = self.request.get('value')
+    self.store_a_value(tag, value)
+
+  def get(self):
+    self.response.out.write('''
+    <html><body>
+    <form action="/storeavalue" method="post"
+          enctype=application/x-www-form-urlencoded>
+       <p>Tag<input type="text" name="tag" /></p>
+       <p>Value<input type="text" name="value" /></p>
+       <input type="hidden" name="fmt" value="html">
+       <input type="submit" value="Store a value">
+    </form></body></html>\n''')
+	
 class GetValue(webapp.RequestHandler):
 
   def get_value(self, tag):
-    entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
-    if entry:
-      value = entry.value
-    else: value = ""
-    ## We tag the returned result with "VALUE".  The TinyWebDB
-    ## component makes no use of this, but other programs might.
-    ## check if it is a html request and if so clean the tag and value variables
-    if self.request.get('fmt') == "html":
-      value = escape(value)
-      tag = escape(tag)
-    WritePhoneOrWeb(self, lambda : json.dump(["VALUE", tag, value], self.response.out))
+	if tag == "getList":
+		listTags = ['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite']
+		valuesAll = "";
+		for tag in listTags:
+			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
+			
+			if entry:
+			  value = entry.value
+			else: value = ""
+			valuesAll += ","
+			valuesAll += str(value)
+			## We tag the returned result with "VALUE".  The TinyWebDB
+			## component makes no use of this, but other programs might.
+			## check if it is a html request and if so clean the tag and value variables
+		if self.request.get('fmt') == "html":
+		  value = escape(valuesAll)
+		  tag = escape(tag)
+		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", tag, value], self.response.out))
+	else:
+		entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
+	
+		if entry:
+		  value = entry.value
+		else: value = ""
+		## We tag the returned result with "VALUE".  The TinyWebDB
+		## component makes no use of this, but other programs might.
+		## check if it is a html request and if so clean the tag and value variables
+		if self.request.get('fmt') == "html":
+		  value = escape(value)
+		  tag = escape(tag)
+		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", tag, value], self.response.out))
 
   def post(self):
     tag = self.request.get('tag')
