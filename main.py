@@ -131,7 +131,7 @@ class GetValue(webapp.RequestHandler):
   def get_value(self, tag):
 	if tag == "getList":
 		listTags = ['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite']
-		valuesAll = "";
+		valuesAll = ""
 		for tag in listTags:
 			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 			
