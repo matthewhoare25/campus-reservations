@@ -132,7 +132,11 @@ class GetValue(webapp.RequestHandler):
 
   def get_value(self, tag):
 	if tag == "getList":
+<<<<<<< HEAD
 		listTags = ['Maths','Science','Technology','Physics','Library','Engineering','Humanities','General','Study Area','Suite']
+=======
+		listTags = array(tag,['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite'])
+>>>>>>> parent of 9b53414... Changed TypeError line 135
 		valuesAll = ""
 		for tags in listTags:
 			finalTag = 'reservations' + tags
