@@ -132,29 +132,26 @@ class GetValue(webapp.RequestHandler):
 
   def get_value(self, tag):
 	if tag == "getList":
-<<<<<<< HEAD
-		listTags = ['Maths','Science','Technology','Physics','Library','Engineering','Humanities','General','Study Area','Suite']
-=======
+
 		listTags = array(tag,['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite'])
->>>>>>> parent of 9b53414... Changed TypeError line 135
+
 		valuesAll = ""
 		for tags in listTags:
-			finalTag = 'reservations' + tags
-			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", finalTag).get()
+			
+			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", ).get()
 			
 			if entry:
 			  value = entry.value
-			  valuesAll += ","
-			  valuesAll += value
 			else: value = ""
-			
+                          valuesAll += ","
+			  valuesAll += value
 			## We tag the returned result with "VALUE".  The TinyWebDB
 			## component makes no use of this, but other programs might.
 			## check if it is a html request and if so clean the tag and value variables
 		if self.request.get('fmt') == "html":
 		  value = escape(valuesAll)
 		  tag = escape(tag)
-		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", tag, value], self.response.out))
+		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", "getList", value], self.response.out))
 	else:
 		entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 	
