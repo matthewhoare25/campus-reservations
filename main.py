@@ -140,9 +140,10 @@ class GetValue(webapp.RequestHandler):
 			
 			if entry:
 			  value = entry.value
+			  valuesAll += ","
+			  valuesAll += value
 			else: value = ""
-			valuesAll += ","
-			valuesAll += str(value)
+			
 			## We tag the returned result with "VALUE".  The TinyWebDB
 			## component makes no use of this, but other programs might.
 			## check if it is a html request and if so clean the tag and value variables
