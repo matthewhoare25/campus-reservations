@@ -132,17 +132,19 @@ class GetValue(webapp.RequestHandler):
 
   def get_value(self, tag):
 	if tag == "getList":
-		listTags = ['Maths','Science','Technology','Physics','Library','Engineering','Humanities','General','Study Area','Suite']
+		listTags = ['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite']
 		valuesAll = ""
 		for tags in listTags:
-			finalTag = 'reservations' + tags
-			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", finalTag).get()
+			
+			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 			
 			if entry:
 			  value = entry.value
-			  valuesAll += ","
-			  valuesAll += value
+			  
+			  
 			else: value = ""
+			valuesAll += value
+			valuesAll += ","
 			
 			## We tag the returned result with "VALUE".  The TinyWebDB
 			## component makes no use of this, but other programs might.
@@ -150,7 +152,7 @@ class GetValue(webapp.RequestHandler):
 		if self.request.get('fmt') == "html":
 		  value = escape(valuesAll)
 		  tag = escape(tag)
-		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", tag, value], self.response.out))
+		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", "getList", value], self.response.out))
 	else:
 		entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 	
