@@ -16,6 +16,7 @@ from google.appengine.ext.webapp.util import run_wsgi_app
 from google.appengine.ext import db
 from google.appengine.ext.db import Key
 import json
+from time import sleep
 from array import *
 
 class StoredData(db.Model):
@@ -133,25 +134,23 @@ class GetValue(webapp.RequestHandler):
   def get_value(self, tag):
 	if tag == "getList":
 
-		listTags = array(c,['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite'])
+		listTags = ['reservationsMaths','reservationsScience','reservationsTechnology','reservationsPhysics','reservationsLibrary','reservationsEngineering','reservationsHumanities','reservationsGeneral','reservationsStudy Area','reservationsSuite']
 
 		valuesAll = ""
 		for tags in listTags:
-			
-			entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", ).get()
-			
+                	entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tags).get()
 			if entry:
-			  value = entry.value
+			  value = str(entry.value)
 			else: value = ""
-                        valuesAll += ","
-			valuesAll += value
+                        valuesAll += value + "x"
+                        		
 			## We tag the returned result with "VALUE".  The TinyWebDB
 			## component makes no use of this, but other programs might.
-			## check if it is a html request and if so clean the tag and value variables
-		if self.request.get('fmt') == "html":
-		  value = escape(valuesAll)
-		  tag = escape(tag)
-		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", "getList", value], self.response.out))
+                if self.request.get('fmt') == "html":
+                  value = escape(valuesAll)
+                  tag = escape(tag)
+                WritePhoneOrWeb(self, lambda : json.dump(["VALUE", "getList", valuesAll], self.response.out))
+                sleep(1)
 	else:
 		entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 	
@@ -162,7 +161,7 @@ class GetValue(webapp.RequestHandler):
 		## component makes no use of this, but other programs might.
 		## check if it is a html request and if so clean the tag and value variables
 		if self.request.get('fmt') == "html":
-		  value = escape(value)
+		  ##value = escape(value)
 		  tag = escape(tag)
 		WritePhoneOrWeb(self, lambda : json.dump(["VALUE", tag, value], self.response.out))
 
