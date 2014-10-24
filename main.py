@@ -1,13 +1,5 @@
 #!/usr/bin/env python
-###
-### This is a web service for use with App
-### Inventor for Android (<http://appinventor.googlelabs.com>)
-### This particular service stores and retrieves tag-value pairs 
-### using the protocol necessary to communicate with the TinyWebDB
-### component of an App Inventor app.
 
-
-### Author: David Wolber (wolber@usfca.edu), using sample of Hal Abelson
 
 import logging
 from cgi import escape
@@ -22,11 +14,7 @@ from array import *
 class StoredData(db.Model):
   tag = db.StringProperty()
   value = db.StringProperty(multiline=True)
-  ## defining value as a string property limits individual values to 500
-  ## characters.   To remove this limit, define value to be a text
-  ## property instead, by commnenting out the previous line
-  ## and replacing it by this one:
-  ## value db.TextProperty()
+
   date = db.DateTimeProperty(required=True, auto_now=True)
 
 
@@ -57,16 +45,6 @@ class MainPage(webapp.RequestHandler):
     show_stored_data(self)
     self.response.out.write('</body></html>')
 
-########################################
-### Implementing the operations
-### Each operation is design to respond to the JSON request
-### or to the Web form, depending on whether the fmt input to the post
-### is json or html.
-
-### Each operation is a class.  The class includes the method that
-### actually, manipualtes the DB, followed by the methods that respond
-### to post and to get.
-
 
 class StoreAValue(webapp.RequestHandler):
 
@@ -77,9 +55,7 @@ class StoreAValue(webapp.RequestHandler):
       entry.value = value
     else: entry = StoredData(tag = tag, value = value)
     entry.put()
-    ## Send back a confirmation message.  The TinyWebDB component ignores
-    ## the message (other than to note that it was received), but other
-    ## components might use this.
+    ## Send back a confirmation message. 
     result = ["STORED", tag, value]
     WritePhoneOrWeb(self, lambda : json.dump(result, self.response.out))
 
@@ -107,9 +83,7 @@ class StoreAValue(webapp.RequestHandler):
       entry.value = value
     else: entry = StoredData(tag = tag, value = value)
     entry.put()
-    ## Send back a confirmation message.  The TinyWebDB component ignores
-    ## the message (other than to note that it was received), but other
-    ## components might use this.
+    ## Send back a confirmation message.  
     result = ["STORED", tag, value]
     WritePhoneOrWeb(self, lambda : json.dump(result, self.response.out))
 
@@ -144,8 +118,7 @@ class GetValue(webapp.RequestHandler):
 			else: value = ""
                         valuesAll += value + "x"
                         		
-			## We tag the returned result with "VALUE".  The TinyWebDB
-			## component makes no use of this, but other programs might.
+			## We tag the returned result with "VALUE"
                 if self.request.get('fmt') == "html":
                   value = escape(valuesAll)
                   tag = escape(tag)
@@ -157,9 +130,7 @@ class GetValue(webapp.RequestHandler):
 		if entry:
 		  value = entry.value
 		else: value = ""
-		## We tag the returned result with "VALUE".  The TinyWebDB
-		## component makes no use of this, but other programs might.
-		## check if it is a html request and if so clean the tag and value variables
+		## We tag the returned result with "VALUE"
 		if self.request.get('fmt') == "html":
 		  ##value = escape(value)
 		  tag = escape(tag)
@@ -180,8 +151,7 @@ class GetValue(webapp.RequestHandler):
     </form></body></html>\n''')
 
 
-### The DeleteEntry is called from the Web only, by pressing one of the
-### buttons on the main page.  So there's no get method, only a post.
+
 
 class DeleteEntry(webapp.RequestHandler):
 
@@ -195,10 +165,6 @@ class DeleteEntry(webapp.RequestHandler):
     self.redirect('/')
 
 
-########################################
-#### Procedures used in displaying the main page
-
-### Show the API
 def write_available_operations(self):
   self.response.out.write('''
     <p>Available calls:\n
@@ -207,7 +173,7 @@ def write_available_operations(self):
     <li><a href="/getvalue">/getvalue</a>: Retrieves the value stored under a given tag.  Returns the empty string if no value is stored</li>
     </ul>''')
 
-### Generate the page header
+
 def write_page_header(self):
   self.response.headers['Content-Type'] = 'text/html'
   self.response.out.write('''
@@ -223,7 +189,7 @@ def write_page_header(self):
      <body>''')
   self.response.out.write('<h2>App Inventor for Android: Custom Tiny WebDB Service</h2>')
 
-### Show the tags and values as a table.
+
 def show_stored_data(self):
   self.response.out.write('''
     <p><table border=1>
@@ -232,9 +198,7 @@ def show_stored_data(self):
          <th>Value</th>
          <th>Created (GMT)</th>
       </tr>''')
-  # This next line is replaced by the one under it, in order to help
-  # protect against SQL injection attacks.  Does it help enough?
-  #entries = db.GqlQuery("SELECT * FROM StoredData ORDER BY tag")
+
   entries = StoredData.all().order("-tag")
   for e in entries:
     entry_key_string = str(e.key())
@@ -257,11 +221,6 @@ def show_stored_data(self):
 
 
 
-#### Utilty procedures for generating the output
-
-#### Write response to the phone or to the Web depending on fmt
-#### Handler is an appengine request handler.  writer is a thunk
-#### (i.e. a procedure of no arguments) that does the write when invoked.
 def WritePhoneOrWeb(handler, writer):
   if handler.request.get('fmt') == "html":
     WritePhoneOrWebToWeb(handler, writer)
@@ -280,7 +239,6 @@ def WritePhoneOrWebToWeb(handler, writer):
   WriteWebFooter(handler, writer)
 
 
-#### Write to the Web (without checking fmt)
 def WriteToWeb(handler, writer):
   handler.response.headers['Content-Type'] = 'text/html'
   handler.response.out.write('<html><body>')
@@ -294,12 +252,9 @@ def WriteWebFooter(handler, writer):
   </a>''')
   handler.response.out.write('</body></html>')
 
-### A utility that guards against attempts to delete a non-existent object
 def dbSafeDelete(key):
   if db.get(key) :  db.delete(key)
 
-
-### Assign the classes to the URL's
 
 application =     \
    webapp.WSGIApplication([('/', MainPage),
@@ -315,17 +270,4 @@ def main():
 if __name__ == '__main__':
   main()
 
-### Copyright 2009 Google Inc.
-###
-### Licensed under the Apache License, Version 2.0 (the "License");
-### you may not use this file except in compliance with the License.
-### You may obtain a copy of the License at
-###
-###     http://www.apache.org/licenses/LICENSE-2.0
-###
-### Unless required by applicable law or agreed to in writing, software
-### distributed under the License is distributed on an "AS IS" BASIS,
-### WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-### See the License for the specific language governing permissions and
-### limitations under the License.
-###
+
