@@ -128,7 +128,7 @@ class GetValue(webapp.RequestHandler):
 		    tagToDelete = tag[6:]
 		    tagToDelete = "username" + tagToDelete
 		    entry_key_string = str(tagToDelete.key())
-		    DeleteEntry.post(entry_key_string,tagToDelete,fmt)
+		    DeleteEntry.request.post(entry_key_string,tagToDelete,fmt)
 	else:
 		entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 	
