@@ -2,6 +2,7 @@
 
 
 import logging
+from StringIO import StringIO
 from cgi import escape
 from google.appengine.ext import webapp
 from google.appengine.ext.webapp.util import run_wsgi_app
@@ -10,6 +11,7 @@ from google.appengine.ext.db import Key
 import json
 from time import sleep
 from array import *
+from urllib import urlencode
 
 class StoredData(db.Model):
   tag = db.StringProperty()
@@ -127,8 +129,23 @@ class GetValue(webapp.RequestHandler):
         elif "delete" in tag :
 		    tagToDelete = tag[6:]
 		    tagToDelete = "username" + tagToDelete
-		    entry_key_string = str(tagToDelete.key())
-		    DeleteEntry.request.post(entry_key_string,tagToDelete,fmt)
+		    entry = StoredData.all().filter('tag =', tagToDelete)
+		    for entries in entry:
+                      entry_key_string = str(tagToDelete.key())
+		    delete = DeleteEntry()
+		    form = {'entry_key_string': entry_key_string,'tag': tagToDelete, 'fmt': 'html'}
+		    form = urlencode(form)
+		    delete.Response = webapp.Response()
+		    delete.request = webapp.Request({
+                                          'REQUEST_METHOD': 'POST',
+                                          'PATH_INFO': '/deleteentry',
+                                          'wsgi.input': StringIO(form),
+                                          'CONTENT_LENGTH': len(form),
+                                          
+                                          'SERVER_PORT': '80',
+                                          'wsgi.url_scheme': 'http',
+                                      })
+		    delete.post()
 	else:
 		entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
 	
@@ -164,7 +181,7 @@ class DeleteEntry(webapp.RequestHandler):
     logging.debug('/deleteentry?%s\n|%s|' %
                   (self.request.query_string, self.request.body))
     entry_key_string = self.request.get('entry_key_string')
-    key = db.Key(entry_key_string)
+    key = db.Key(entry_key_string)  
     tag = self.request.get('tag')
     db.run_in_transaction(dbSafeDelete,key)
     self.redirect('/')
