@@ -52,14 +52,25 @@ class StoreAValue(webapp.RequestHandler):
 
   def store_a_value(self, tag, value):
     # There's a potential readers/writers error here :(
-    entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
-    if entry:
-      entry.value = value
-    else: entry = StoredData(tag = tag, value = value)
-    entry.put()
-    ## Send back a confirmation message. 
-    result = ["STORED", tag, value]
-    WritePhoneOrWeb(self, lambda : json.dump(result, self.response.out))
+    entry = db.GqlQuery("SELECT * FROM StoredData where tag = :1", "bookingName").get()
+    if str(tag) == "bookingName":
+      bookingArray = db.GqlQuery("SELECT * FROM StoredData where tag = :1", tag).get()
+      names = str(bookingArray.value)
+      nameToAdd = str(value)
+      names = names + " " + nameToAdd
+      names = StoredData(tag = tag, value = names)
+      names.put()
+      ## Send back a confirmation message. 
+      result = ["STORED", tag, names]
+      WritePhoneOrWeb(self, lambda : json.dump(result, self.response.out))
+    else:
+      if entry:
+        entry.value = value
+      else: entry = StoredData(tag = tag, value = value)
+      entry.put()
+      ## Send back a confirmation message. 
+      result = ["STORED", tag, value]
+      WritePhoneOrWeb(self, lambda : json.dump(result, self.response.out))
 
   def post(self):
     tag = self.request.get('tag')
@@ -129,9 +140,11 @@ class GetValue(webapp.RequestHandler):
         elif "delete" in tag :
 		    tagToDelete = tag[6:]
 		    tagToDelete = "username" + tagToDelete
-		    entry = StoredData.all().filter('tag =', tagToDelete)
+		    entry = StoredData.all().order("-tag")
+		    
 		    for entries in entry:
-                      entry_key_string = str(tagToDelete.key())
+                      if entries.tag == str(tagToDelete):
+                        entry_key_string = str(db.key(tagToDelete))
 		    delete = DeleteEntry()
 		    form = {'entry_key_string': entry_key_string,'tag': tagToDelete, 'fmt': 'html'}
 		    form = urlencode(form)
